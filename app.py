@@ -109,6 +109,9 @@ st.markdown(
        일반 버튼
        ============================== */
 
+    .stButton > div > div > p {
+    color: #FFFFFF !important;
+}
     .stButton button {
         background-color: #FFFFFF !important;
         color: #000000 !important;
