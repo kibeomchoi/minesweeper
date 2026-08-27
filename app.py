@@ -36,58 +36,93 @@ st.markdown(
     """
     <style>
 
-    /* 전체 배경 */
+    /* ==============================
+       전체 배경
+       ============================== */
+
     .stApp {
-        background-color: #111111;
+        background-color: #111111 !important;
     }
 
-    /* 일반 Markdown 글씨 */
-    .stMarkdown,
-    .stMarkdown p,
-    .stMarkdown h1,
-    .stMarkdown h2,
-    .stMarkdown h3,
-    .stMarkdown li {
+
+    /* ==============================
+       일반 글씨
+       ============================== */
+
+    p,
+    label,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
     }
 
-    /* 제목 */
-    .stMarkdown h1 {
+
+    /* ==============================
+       Streamlit 제목
+       ============================== */
+
+    [data-testid="stTitle"] {
         color: #FFFFFF !important;
-        font-weight: 900 !important;
+        -webkit-text-fill-color: #FFFFFF !important;
     }
 
-    /* 입력창 라벨 */
-    label {
-        color: #FFFFFF !important;
-        font-weight: 800 !important;
+    [data-testid="stHeader"] {
+        background-color: transparent !important;
     }
 
-    /* 숫자 입력창 */
+
+    /* ==============================
+       숫자 입력창
+       ============================== */
+
     [data-testid="stNumberInput"] input {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
-        font-weight: 800 !important;
+        font-weight: 900 !important;
         border: 2px solid #FFFFFF !important;
     }
 
-    /* 숫자 입력창 +/- 버튼 */
-    [data-testid="stNumberInput"] button {
-        color: #000000 !important;
-        background-color: #FFFFFF !important;
+    [data-testid="stNumberInput"] label {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        font-weight: 900 !important;
     }
 
-    /* 모든 일반 버튼 */
+
+    /* ==============================
+       숫자 입력 +/- 버튼
+       ============================== */
+
+    [data-testid="stNumberInput"] button {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+
+
+    /* ==============================
+       일반 버튼
+       ============================== */
+
     .stButton button {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
+
         border: 2px solid #FFFFFF !important;
         border-radius: 10px !important;
+
         min-height: 55px !important;
+
         font-size: 18px !important;
         font-weight: 900 !important;
+
+        opacity: 1 !important;
     }
 
     .stButton button:hover {
@@ -96,7 +131,6 @@ st.markdown(
         -webkit-text-fill-color: #000000 !important;
     }
 
-    /* 비활성 버튼 */
     .stButton button:disabled {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -104,7 +138,26 @@ st.markdown(
         opacity: 1 !important;
     }
 
-    /* 경고 / 에러 */
+
+    /* ==============================
+       Metric
+       ============================== */
+
+    [data-testid="stMetricLabel"] {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+
+    /* ==============================
+       Info / Success / Error
+       ============================== */
+
     [data-testid="stAlert"] {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -115,7 +168,11 @@ st.markdown(
         -webkit-text-fill-color: #000000 !important;
     }
 
-    /* 구분선 */
+
+    /* ==============================
+       구분선
+       ============================== */
+
     hr {
         border-color: #FFFFFF !important;
     }
