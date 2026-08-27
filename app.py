@@ -124,6 +124,13 @@ st.markdown(
 
         font-size: 18px !important;
         font-weight: 900 !important;
+        
+    .stButton button,
+.stButton button p,
+.stButton button span {
+        color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+}
 
         opacity: 1 !important;
     }
