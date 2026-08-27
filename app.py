@@ -113,22 +113,21 @@ st.markdown(
     color: #FFFFFF !important;
 }
     .stButton button {
-        background-color: #FFFFFF !important;
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    border: 2px solid #FFFFFF !important;
+    border-radius: 10px !important;
+    min-height: 55px !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+}
 
-        border: 2px solid #FFFFFF !important;
-        border-radius: 10px !important;
-
-        min-height: 55px !important;
-
-        font-size: 18px !important;
-        font-weight: 900 !important;
-        
-    .stButton button,
+/* 여기 추가 */
+.stButton button,
 .stButton button p,
 .stButton button span {
-        color: #000000 !important;
+    color: #000000 !important;
     -webkit-text-fill-color: #000000 !important;
 }
 
