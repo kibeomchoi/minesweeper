@@ -1,14 +1,42 @@
+"""
+=====================================================
+Minesweeper - Streamlit App
+=====================================================
+
+화면 흐름
+
+1. 시작 화면
+2. 초기 잔액 입력
+3. 베팅 금액 입력
+4. 게임 진행
+5. 지뢰 발견 결과
+6. Cash Out 결과
+7. 계속하기 / 게임 종료
+8. 최종 잔액
+9. 다음 사용자
+
+팝업을 사용하지 않습니다.
+모든 결과는 화면 자체를 변경하여 표시합니다.
+=====================================================
+"""
+
 import streamlit as st
 
-from game import Game
-
 from config import (
-    TITLE,
     ROWS,
     COLS,
-    PAYOUTS,
     MIN_CASHOUT,
+    PAYOUTS,
+    TITLE,
+    PAGE_TITLE,
+    PAGE_ICON,
+    MIN_BALANCE,
+    BALANCE_UNIT,
+    MIN_BET,
+    BET_UNIT,
 )
+
+from game import Game
 
 
 # =====================================================
@@ -16,431 +44,770 @@ from config import (
 # =====================================================
 
 st.set_page_config(
-    page_title="Casino Mines",
-    page_icon="🎰",
-    layout="centered"
+    page_title=PAGE_TITLE,
+    page_icon=PAGE_ICON,
+    layout="centered",
 )
 
 
 # =====================================================
-# 기본 CSS
+# CSS
 # =====================================================
 
 st.markdown(
     """
     <style>
 
-    .stApp {
-        background-color: #0b0b0b;
+    /* =================================================
+       전체 배경
+       ================================================= */
+
+    html,
+    body,
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"] {
+
+        background-color: #111111 !important;
+        color: #FFFFFF !important;
+
     }
 
 
-    /* 일반 글씨 */
-    .stMarkdown,
-    .stText,
-    label {
-        color: white !important;
+    /* =================================================
+       기본 글씨
+       ================================================= */
+
+    [data-testid="stMain"] p,
+    [data-testid="stMain"] span,
+    [data-testid="stMain"] label,
+    [data-testid="stMain"] div {
+
+        color: #FFFFFF;
+
     }
 
 
-    /* 버튼 글씨 */
-    div.stButton > button {
-        color: white !important;
+    /* =================================================
+       제목
+       ================================================= */
+
+    .main-title {
+
+        background-color: #FFFFFF;
+
+        color: #000000 !important;
+
+        font-size: 42px;
+
+        font-weight: 900;
+
+        text-align: center;
+
+        padding: 18px;
+
+        border-radius: 14px;
+
+        margin-bottom: 25px;
+
+    }
+
+
+    /* =================================================
+       일반 안내 문구
+       ================================================= */
+
+    .text-white {
+
+        color: #FFFFFF !important;
+
         font-size: 20px;
-        font-weight: bold;
-        min-height: 60px;
+
+        font-weight: 800;
+
+        text-align: center;
+
+        margin: 15px 0;
+
     }
 
 
-    /* 비활성 게임판 버튼의 이모지 흐림 방지 */
-    div.stButton > button:disabled {
+    /* =================================================
+       잔액 박스
+       ================================================= */
+
+    .balance-box {
+
+        background-color: #FFFFFF;
+
+        color: #000000 !important;
+
+        font-size: 28px;
+
+        font-weight: 900;
+
+        text-align: center;
+
+        padding: 15px;
+
+        border-radius: 12px;
+
+        margin: 15px 0 25px 0;
+
+    }
+
+
+    /* =================================================
+       정보 박스
+       ================================================= */
+
+    .info-box {
+
+        background-color: #222222;
+
+        border: 2px solid #FFFFFF;
+
+        border-radius: 12px;
+
+        padding: 18px;
+
+        margin: 15px 0;
+
+        text-align: center;
+
+    }
+
+
+    .info-label {
+
+        color: #FFFFFF !important;
+
+        font-size: 17px;
+
+        font-weight: 800;
+
+    }
+
+
+    .info-value {
+
+        color: #FFFFFF !important;
+
+        font-size: 30px;
+
+        font-weight: 900;
+
+        margin-top: 6px;
+
+    }
+
+
+    /* =================================================
+       게임판
+       ================================================= */
+
+    .cell-open {
+
+        background-color: #FFFFFF;
+
+        color: #000000 !important;
+
+        font-size: 30px;
+
+        font-weight: 900;
+
+        text-align: center;
+
+        border-radius: 8px;
+
+        padding: 12px;
+
+    }
+
+
+    /* =================================================
+       결과 화면
+       ================================================= */
+
+    .result-screen {
+
+        background-color: #FFFFFF;
+
+        border-radius: 15px;
+
+        padding: 30px 20px;
+
+        margin: 20px 0;
+
+        text-align: center;
+
+    }
+
+
+    .result-title {
+
+        color: #000000 !important;
+
+        font-size: 38px;
+
+        font-weight: 900;
+
+        margin-bottom: 20px;
+
+    }
+
+
+    .result-text {
+
+        color: #000000 !important;
+
+        font-size: 21px;
+
+        font-weight: 800;
+
+        margin: 10px 0;
+
+    }
+
+
+    .result-number {
+
+        color: #000000 !important;
+
+        font-size: 34px;
+
+        font-weight: 900;
+
+        margin: 15px 0;
+
+    }
+
+
+    /* =================================================
+       버튼
+       ================================================= */
+
+    [data-testid="stButton"] button {
+
+        background-color: #FFFFFF !important;
+
+        color: #000000 !important;
+
+        -webkit-text-fill-color: #000000 !important;
+
+        border: 2px solid #FFFFFF !important;
+
+        border-radius: 10px !important;
+
+        min-height: 58px !important;
+
+        font-size: 19px !important;
+
+        font-weight: 900 !important;
+
         opacity: 1 !important;
-        color: white !important;
+
     }
 
 
-    div.stButton > button:disabled p {
+    [data-testid="stButton"] button * {
+
+        color: #000000 !important;
+
+        -webkit-text-fill-color: #000000 !important;
+
+        font-weight: 900 !important;
+
         opacity: 1 !important;
-        color: white !important;
+
     }
 
 
-    /* 베팅 입력창 */
-    div[data-testid="stNumberInput"] input {
-        color: white !important;
-        background-color: #222222 !important;
+    /* =================================================
+       숫자 입력창
+       ================================================= */
+
+    [data-testid="stNumberInput"] {
+
+        margin-bottom: 10px;
+
+    }
+
+
+    [data-testid="stNumberInput"] label {
+
+        color: #FFFFFF !important;
+
+        font-size: 18px !important;
+
+        font-weight: 900 !important;
+
+    }
+
+
+    [data-testid="stNumberInput"] input {
+
+        background-color: #FFFFFF !important;
+
+        color: #000000 !important;
+
+        -webkit-text-fill-color: #000000 !important;
+
         font-size: 22px !important;
-        font-weight: bold !important;
+
+        font-weight: 900 !important;
+
+        border: 3px solid #FFFFFF !important;
+
+        border-radius: 8px !important;
+
+        opacity: 1 !important;
+
     }
 
 
-    div[data-testid="stNumberInput"] label {
-        color: white !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
+    /* =================================================
+       에러 / 경고 / 성공 메시지
+       ================================================= */
+
+    [data-testid="stAlert"] {
+
+        background-color: #FFFFFF !important;
+
+        border: 2px solid #000000 !important;
+
+    }
+
+
+    [data-testid="stAlert"] * {
+
+        color: #000000 !important;
+
+        -webkit-text-fill-color: #000000 !important;
+
+        font-weight: 800 !important;
+
+        opacity: 1 !important;
+
+    }
+
+
+    /* =================================================
+       구분선
+       ================================================= */
+
+    hr {
+
+        border-color: #FFFFFF !important;
+
     }
 
 
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
 # =====================================================
-# Session State 초기화
+# Session State
 # =====================================================
 
+if "screen" not in st.session_state:
+    st.session_state.screen = "start"
+
 if "balance" not in st.session_state:
-    st.session_state.balance = None
-
-
-if "game" not in st.session_state:
-    st.session_state.game = None
-
+    st.session_state.balance = 0
 
 if "bet_amount" not in st.session_state:
     st.session_state.bet_amount = 0
 
+if "game" not in st.session_state:
+    st.session_state.game = None
 
-if "round_active" not in st.session_state:
-    st.session_state.round_active = False
+if "last_reward" not in st.session_state:
+    st.session_state.last_reward = 0
 
-
-if "show_game_over" not in st.session_state:
-    st.session_state.show_game_over = False
-
-
-if "show_cashout" not in st.session_state:
-    st.session_state.show_cashout = False
-
-
-if "cashout_reward" not in st.session_state:
-    st.session_state.cashout_reward = 0
-
-
-if "game_finished" not in st.session_state:
-    st.session_state.game_finished = False
+if "last_result" not in st.session_state:
+    st.session_state.last_result = None
 
 
 # =====================================================
-# 현재 게임 가져오기
+# 함수
 # =====================================================
 
-game = st.session_state.game
-
-
-# =====================================================
-# 결과 팝업
-# =====================================================
-
-@st.dialog("💥 GAME OVER")
-def game_over_popup():
-
-    st.error("💥 폭탄을 발견했습니다!")
+def show_title():
+    """
+    게임 제목
+    """
 
     st.markdown(
-        f"현재 잔액 : **{st.session_state.balance}칩**"
+        f"""
+        <div class="main-title">
+            {TITLE}
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.write("다음 게임을 진행하시겠습니까?")
 
-
-    col1, col2 = st.columns(2)
-
-
-    with col1:
-
-        if st.button(
-            "계속하기",
-            use_container_width=True
-        ):
-
-            st.session_state.show_game_over = False
-
-            if st.session_state.balance > 0:
-
-                st.session_state.round_active = False
-
-            else:
-
-                st.session_state.game_finished = True
-
-            st.rerun()
-
-
-    with col2:
-
-        if st.button(
-            "게임 끝내기",
-            use_container_width=True
-        ):
-
-            st.session_state.show_game_over = False
-
-            st.session_state.game_finished = True
-
-            st.rerun()
-
-
-
-@st.dialog("🎉 CASH OUT")
-def cashout_popup(reward):
-
-    st.success("🎉 Cash Out 성공!")
+def show_balance():
+    """
+    현재 잔액
+    """
 
     st.markdown(
-        f"획득 칩 : **{reward}칩**"
+        f"""
+        <div class="balance-box">
+            💰 현재 잔액 : {st.session_state.balance:,}칩
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.markdown(
-        f"현재 잔액 : **{st.session_state.balance}칩**"
-    )
 
-    st.write("다음 게임을 진행하시겠습니까?")
+def new_game():
+    """
+    새로운 게임 객체 생성
+    """
 
+    st.session_state.game = Game()
 
-    col1, col2 = st.columns(2)
+    st.session_state.last_reward = 0
 
-
-    with col1:
-
-        if st.button(
-            "계속하기",
-            use_container_width=True
-        ):
-
-            st.session_state.show_cashout = False
-
-            if st.session_state.balance > 0:
-
-                st.session_state.round_active = False
-
-            else:
-
-                st.session_state.game_finished = True
-
-            st.rerun()
+    st.session_state.last_result = None
 
 
-    with col2:
+def reset_user():
+    """
+    다음 사용자를 위해 모든 상태 초기화
+    """
 
-        if st.button(
-            "게임 끝내기",
-            use_container_width=True
-        ):
+    st.session_state.screen = "start"
 
-            st.session_state.show_cashout = False
+    st.session_state.balance = 0
 
-            st.session_state.game_finished = True
+    st.session_state.bet_amount = 0
 
-            st.rerun()
+    st.session_state.game = None
+
+    st.session_state.last_reward = 0
+
+    st.session_state.last_result = None
+
+
+def go_to_bet_screen():
+    """
+    다음 게임 베팅 화면
+    """
+
+    st.session_state.bet_amount = 0
+
+    st.session_state.game = None
+
+    st.session_state.last_reward = 0
+
+    st.session_state.last_result = None
+
+    st.session_state.screen = "bet"
 
 
 # =====================================================
 # 제목
 # =====================================================
 
-st.title(TITLE)
+show_title()
 
 
 # =====================================================
-# 게임 종료 화면
+# SCREEN 1
+# 시작 화면
 # =====================================================
 
-if st.session_state.game_finished:
+if st.session_state.screen == "start":
 
-    st.divider()
-
-    st.subheader("🎰 GAME END")
-
-    st.success(
-        f"최종 잔액 : {st.session_state.balance}칩"
+    st.markdown(
+        """
+        <div class="text-white">
+            💣 지뢰를 피하고 안전한 칸을 찾아보세요!
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.write("게임이 종료되었습니다.")
 
-    st.stop()
+    st.markdown(
+        """
+        <div class="info-box">
 
-# =====================================================
-# 처음 잔액 설정
-# =====================================================
+            <div class="info-label">
+                게임 방법
+            </div>
 
-if st.session_state.balance is None:
+            <div style="
+                color:#FFFFFF !important;
+                font-size:18px;
+                font-weight:800;
+                line-height:1.9;
+                margin-top:12px;
+            ">
+                💎 안전한 칸을 찾으면 배율이 올라갑니다.<br>
+                💣 지뢰를 찾으면 베팅 금액을 잃습니다.<br>
+                💰 안전한 칸 5개부터 Cash Out이 가능합니다.<br>
+                🎲 베팅 금액은 100칩 단위입니다.
+            </div>
 
-    st.subheader("💰 게임 시작")
-
-    st.write(
-        "게임에 사용할 총 칩을 입력해주세요."
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
+
+
+    st.markdown(
+        """
+        <div class="text-white">
+            먼저 사용자의 시작 잔액을 입력하세요.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
     initial_balance = st.number_input(
-        "보유 칩",
-        min_value=100,
-        step=100,
-        value=1000,
-        key="initial_balance_input"
+        "시작 잔액",
+        min_value=MIN_BALANCE,
+        step=BALANCE_UNIT,
+        value=10000,
+        key="initial_balance",
     )
+
 
     if st.button(
         "🎰 게임 시작",
-        use_container_width=True
+        use_container_width=True,
     ):
 
-        st.session_state.balance = int(initial_balance)
+        if initial_balance < MIN_BALANCE:
 
-        st.session_state.game = None
+            st.error(
+                f"최소 잔액은 {MIN_BALANCE:,}칩입니다."
+            )
 
-        st.session_state.bet_amount = 0
+        elif initial_balance % BALANCE_UNIT != 0:
 
-        st.session_state.round_active = False
+            st.error(
+                f"잔액은 {BALANCE_UNIT}칩 단위로 입력해야 합니다."
+            )
 
-        st.rerun()
+        else:
 
-    st.stop()
+            st.session_state.balance = int(
+                initial_balance
+            )
+
+            st.session_state.bet_amount = 0
+
+            st.session_state.game = None
+
+            st.session_state.screen = "bet"
+
+            st.rerun()
 
 
 # =====================================================
-# 현재 잔액 표시
+# SCREEN 2
+# 베팅 화면
 # =====================================================
 
-st.subheader(
-    f"💰 현재 잔액 : {st.session_state.balance}칩"
-)
+elif st.session_state.screen == "bet":
+
+    show_balance()
 
 
-# =====================================================
-# 새로운 게임 베팅
-# =====================================================
-
-if (
-    not st.session_state.round_active
-    and not st.session_state.show_game_over
-    and not st.session_state.show_cashout
-    and not st.session_state.game_finished
-):
-
-    if st.session_state.balance <= 0:
-
-        st.session_state.game_finished = True
-
-        st.rerun()
-
-
-    st.divider()
-
-    st.subheader("🎲 이번 게임 베팅")
-
-    st.write(
-        f"현재 사용할 수 있는 칩 : "
-        f"{st.session_state.balance}칩"
+    st.markdown(
+        """
+        <div class="text-white">
+            🎲 이번 게임의 베팅 금액을 입력하세요.
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
-    bet_amount = st.number_input(
-        "베팅 금액",
-        min_value=100,
-        max_value=st.session_state.balance,
-        step=100,
-        value=min(
-            100,
-            st.session_state.balance
-        ),
-        key="bet_input"
-    )
+    if st.session_state.balance < MIN_BET:
+
+        st.markdown(
+            """
+            <div class="result-screen">
+
+                <div class="result-title">
+                    게임을 더 진행할 수 없습니다.
+                </div>
+
+                <div class="result-text">
+                    남은 잔액이 최소 베팅 금액보다 적습니다.
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
-    # =================================================
-    # 베팅 시작
-    # =================================================
+        if st.button(
+            "⏹ 게임 종료",
+            use_container_width=True,
+        ):
 
-    if st.button(
-        "🎲 베팅하고 게임 시작",
-        use_container_width=True
-    ):
+            st.session_state.screen = "final"
 
-        bet_amount = int(bet_amount)
+            st.rerun()
 
 
-        # ---------------------------------------------
-        # 100칩 단위 확인
-        # ---------------------------------------------
+    else:
 
-        if bet_amount % 100 != 0:
-
-            st.error(
-                "베팅은 100칩 단위로만 가능합니다."
-            )
-
-            st.stop()
-
-
-        # ---------------------------------------------
-        # 잔액보다 많이 베팅했는지 확인
-        # ---------------------------------------------
-
-        if bet_amount > st.session_state.balance:
-
-            st.error(
-                "보유한 칩보다 많이 베팅할 수 없습니다."
-            )
-
-            st.stop()
+        bet_amount = st.number_input(
+            "베팅 금액",
+            min_value=MIN_BET,
+            max_value=int(
+                st.session_state.balance
+            ),
+            step=BET_UNIT,
+            value=min(
+                1000,
+                int(st.session_state.balance)
+            ),
+            key="bet_amount_input",
+        )
 
 
-        # ---------------------------------------------
-        # 베팅 금액 차감
-        # ---------------------------------------------
+        if st.button(
+            "🎲 베팅하고 시작",
+            use_container_width=True,
+        ):
 
-        st.session_state.balance -= bet_amount
-
-        st.session_state.bet_amount = bet_amount
+            bet_amount = int(bet_amount)
 
 
-        # ---------------------------------------------
-        # 새 게임 생성
-        # ---------------------------------------------
+            # 잔액 초과 검사
+            if bet_amount > st.session_state.balance:
 
-        st.session_state.game = Game()
+                st.error(
+                    "현재 잔액보다 큰 금액은 베팅할 수 없습니다."
+                )
 
-        st.session_state.round_active = True
 
-        st.session_state.show_game_over = False
+            # 최소 금액 검사
+            elif bet_amount < MIN_BET:
 
-        st.session_state.show_cashout = False
+                st.error(
+                    f"최소 베팅 금액은 {MIN_BET:,}칩입니다."
+                )
 
-        st.rerun()
+
+            # 100 단위 검사
+            elif bet_amount % BET_UNIT != 0:
+
+                st.error(
+                    f"베팅 금액은 {BET_UNIT}칩 단위여야 합니다."
+                )
+
+
+            else:
+
+                # 베팅 금액 차감
+                st.session_state.balance -= bet_amount
+
+                st.session_state.bet_amount = bet_amount
+
+                new_game()
+
+                st.session_state.screen = "game"
+
+                st.rerun()
 
 
 # =====================================================
-# 게임 시작
+# SCREEN 3
+# 게임 화면
 # =====================================================
 
-if (
-    st.session_state.round_active
-    and st.session_state.game is not None
-):
+elif st.session_state.screen == "game":
 
     game = st.session_state.game
 
-    status = game.get_status()
+
+    show_balance()
 
 
     # =================================================
-    # 게임 진행 정보
+    # 현재 게임 정보
     # =================================================
 
-    st.divider()
+    col1, col2 = st.columns(2)
 
-    st.write(
-        f"💎 발견한 보석 : "
-        f"{status['gems_found']}개"
+
+    with col1:
+
+        st.markdown(
+            f"""
+            <div class="info-box">
+
+                <div class="info-label">
+                    💎 안전한 칸
+                </div>
+
+                <div class="info-value">
+                    {game.safe_found}개
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+    with col2:
+
+        st.markdown(
+            f"""
+            <div class="info-box">
+
+                <div class="info-label">
+                    📈 현재 배율
+                </div>
+
+                <div class="info-value">
+                    {game.current_multiplier:.1f}x
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+    # =================================================
+    # 다음 배율
+    # =================================================
+
+    next_count = game.safe_found + 1
+
+    next_multiplier = PAYOUTS.get(
+        next_count
     )
 
-    st.write(
-        f"🔥 현재 배율 : "
-        f"{status['multiplier']}x"
-    )
+
+    if next_multiplier is not None:
+
+        st.markdown(
+            f"""
+            <div class="text-white">
+                다음 안전 칸 : {next_multiplier:.1f}x
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
     # =================================================
@@ -449,31 +816,47 @@ if (
 
     if game.can_cash_out():
 
-        st.success(
-            "🎉 보석 5개 이상 발견! "
-            "Cash Out 가능합니다."
+        reward_preview = int(
+            st.session_state.bet_amount
+            * game.current_multiplier
         )
 
 
-    # =================================================
-    # 다음 배율
-    # =================================================
+        st.markdown(
+            f"""
+            <div style="
+                background:#FFFFFF;
+                color:#000000 !important;
+                border-radius:12px;
+                padding:15px;
+                margin:15px 0;
+                text-align:center;
+                font-size:20px;
+                font-weight:900;
+            ">
+                💰 CASH OUT 가능!<br>
+                지금 받으면 {reward_preview:,}칩
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    next_gem = status["gems_found"] + 1
 
-    if next_gem in PAYOUTS:
+    else:
 
-        st.info(
-            f"💎 {next_gem}개 성공 시 "
-            f"→ {PAYOUTS[next_gem]}x"
+        st.markdown(
+            f"""
+            <div class="text-white">
+                💰 Cash Out은 안전한 칸 {MIN_CASHOUT}개부터 가능합니다.
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
 
     # =================================================
     # 게임판
     # =================================================
-
-    st.subheader("💎 Mines")
 
     board = game.get_board_state()
 
@@ -488,104 +871,92 @@ if (
             cell = board[row][col]
 
 
-            # -----------------------------------------
-            # 기본 닫힌 칸
-            # -----------------------------------------
+            with cols[col]:
 
-            symbol = "⬜"
+                # -------------------------------------
+                # 이미 열린 칸
+                # -------------------------------------
+
+                if cell["open"]:
+
+                    if cell["bomb"]:
+
+                        symbol = "💣"
+
+                    elif cell["safe"]:
+
+                        symbol = "💎"
+
+                    else:
+
+                        symbol = "?"
 
 
-            # -----------------------------------------
-            # 열린 칸
-            # -----------------------------------------
-
-            if cell["open"]:
-
-                if cell["bomb"]:
-
-                    symbol = "💣"
-
-                elif cell["gem"]:
-
-                    symbol = "🔷"
-
-
-            # -----------------------------------------
-            # 닫힌 칸
-            # -----------------------------------------
-
-            if not cell["open"]:
-
-                if cols[col].button(
-                    "⬜",
-                    key=f"cell_{row}_{col}",
-                    use_container_width=True
-                ):
-
-                    result = game.click_cell(
-                        row,
-                        col
+                    st.button(
+                        symbol,
+                        key=f"opened_{row}_{col}",
+                        disabled=True,
+                        use_container_width=True,
                     )
 
 
-                    # -----------------------------
-                    # 폭탄
-                    # -----------------------------
+                # -------------------------------------
+                # 닫힌 칸
+                # -------------------------------------
 
-                    if result["result"] == "bomb":
+                else:
 
-                        game.reveal_all()
+                    if st.button(
+                        "⬜",
+                        key=f"cell_{row}_{col}",
+                        use_container_width=True,
+                    ):
 
-                        st.session_state.round_active = False
-
-                        st.session_state.show_game_over = True
-
-
-                    st.rerun()
-
-
-            # -----------------------------------------
-            # 열린 칸
-            # -----------------------------------------
-
-            else:
-
-                cols[col].button(
-                    symbol,
-                    key=f"open_{row}_{col}",
-                    disabled=True,
-                    use_container_width=True
-                )
+                        result = game.click_cell(
+                            row,
+                            col
+                        )
 
 
-    # =================================================
-    # 현재 Cash Out 금액
-    # =================================================
+                        # ---------------------------------
+                        # 지뢰
+                        # ---------------------------------
 
-    current_reward = int(
-        st.session_state.bet_amount
-        * status["multiplier"]
-    )
+                        if result["result"] == "bomb":
+
+                            game.reveal_all()
+
+                            st.session_state.last_result = "bomb"
+
+                            st.session_state.last_reward = 0
+
+                            st.session_state.screen = "result_bomb"
+
+                            st.rerun()
 
 
-    st.divider()
+                        # ---------------------------------
+                        # 안전한 칸
+                        # ---------------------------------
 
-    st.write(
-        f"💰 현재 Cash Out 금액 : "
-        f"**{current_reward}칩**"
-    )
+                        elif result["result"] == "safe":
+
+                            st.rerun()
 
 
     # =================================================
     # Cash Out 버튼
     # =================================================
 
-    if st.button(
-        "💰 Cash Out",
-        use_container_width=True
-    ):
+    if game.can_cash_out():
 
-        if game.can_cash_out():
+        st.markdown("---")
+
+
+        if st.button(
+            "💰 CASH OUT",
+            use_container_width=True,
+        ):
 
             result = game.cash_out(
                 st.session_state.bet_amount
@@ -597,39 +968,257 @@ if (
                 reward = result["reward"]
 
 
-                # -----------------------------
-                # 획득 금액 지급
-                # -----------------------------
-
+                # Cash Out 보상 지급
                 st.session_state.balance += reward
 
-                st.session_state.cashout_reward = reward
 
-                st.session_state.round_active = False
+                st.session_state.last_reward = reward
 
-                st.session_state.show_cashout = True
+                st.session_state.last_result = "cashout"
+
+                st.session_state.screen = "result_cashout"
 
                 st.rerun()
 
 
-        else:
-
-            st.warning(
-                "💎 보석 5개 이상 발견해야 "
-                "Cash Out 할 수 있습니다."
-            )
-
 # =====================================================
-# 결과 팝업 실행
+# SCREEN 4
+# 지뢰 결과
 # =====================================================
 
-if st.session_state.show_game_over:
+elif st.session_state.screen == "result_bomb":
 
-    game_over_popup()
+    st.markdown(
+        """
+        <div class="result-screen">
 
+            <div class="result-title">
+                💥 GAME OVER
+            </div>
 
-if st.session_state.show_cashout:
+            <div class="result-text">
+                지뢰를 발견했습니다!
+            </div>
 
-    cashout_popup(
-        st.session_state.cashout_reward
+            <div class="result-text">
+                이번 게임의 베팅 금액을 잃었습니다.
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
+
+
+    st.markdown(
+        f"""
+        <div class="result-screen">
+
+            <div class="result-text">
+                잃은 금액
+            </div>
+
+            <div class="result-number">
+                -{st.session_state.bet_amount:,}칩
+            </div>
+
+            <div class="result-text">
+                현재 잔액
+            </div>
+
+            <div class="result-number">
+                {st.session_state.balance:,}칩
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    st.markdown(
+        """
+        <div class="text-white">
+            다음 게임을 어떻게 하시겠습니까?
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    col1, col2 = st.columns(2)
+
+
+    with col1:
+
+        if st.button(
+            "▶ 계속하기",
+            use_container_width=True,
+        ):
+
+            go_to_bet_screen()
+
+            st.rerun()
+
+
+    with col2:
+
+        if st.button(
+            "⏹ 게임 끝내기",
+            use_container_width=True,
+        ):
+
+            st.session_state.screen = "final"
+
+            st.rerun()
+
+
+# =====================================================
+# SCREEN 5
+# Cash Out 결과
+# =====================================================
+
+elif st.session_state.screen == "result_cashout":
+
+    st.markdown(
+        """
+        <div class="result-screen">
+
+            <div class="result-title">
+                🎉 CASH OUT 성공!
+            </div>
+
+            <div class="result-text">
+                게임을 성공적으로 종료했습니다.
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    st.markdown(
+        f"""
+        <div class="result-screen">
+
+            <div class="result-text">
+                획득 금액
+            </div>
+
+            <div class="result-number">
+                +{st.session_state.last_reward:,}칩
+            </div>
+
+            <div class="result-text">
+                현재 잔액
+            </div>
+
+            <div class="result-number">
+                {st.session_state.balance:,}칩
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    st.markdown(
+        """
+        <div class="text-white">
+            다음 게임을 어떻게 하시겠습니까?
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    col1, col2 = st.columns(2)
+
+
+    with col1:
+
+        if st.button(
+            "▶ 계속하기",
+            use_container_width=True,
+        ):
+
+            go_to_bet_screen()
+
+            st.rerun()
+
+
+    with col2:
+
+        if st.button(
+            "⏹ 게임 끝내기",
+            use_container_width=True,
+        ):
+
+            st.session_state.screen = "final"
+
+            st.rerun()
+
+
+# =====================================================
+# SCREEN 6
+# 최종 결과
+# =====================================================
+
+elif st.session_state.screen == "final":
+
+    st.markdown(
+        """
+        <div class="result-screen">
+
+            <div class="result-title">
+                🎰 게임 종료
+            </div>
+
+            <div class="result-text">
+                이용해 주셔서 감사합니다.
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    st.markdown(
+        f"""
+        <div class="result-screen">
+
+            <div class="result-text">
+                최종 잔액
+            </div>
+
+            <div class="result-number">
+                {st.session_state.balance:,}칩
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    st.markdown(
+        """
+        <div class="text-white">
+            다음 사용자가 게임을 시작할 수 있습니다.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    if st.button(
+        "🎰 다음 사용자 시작",
+        use_container_width=True,
+    ):
+
+        reset_user()
+
+        st.rerun()
